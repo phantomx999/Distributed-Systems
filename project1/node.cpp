@@ -30,11 +30,11 @@ using namespace apache::thrift::server;
 
 Class NodeHandler {
   public:
-   explicit NodeHandler() : sentiment_value(0.0) {
-     task = new Task();
+   explicit NodeHandler() {
+     //task = new Task();
      positive_words = "";
      negative_words = "";
-     intermediate_filename = "intermediate";
+     //intermediate_filename = "intermediate";
    }
    
    virtual ~NodeHandler() {};
@@ -99,68 +99,35 @@ Class NodeHandler {
      return;
    }
    
-   float CalculateSentiment(TaskHandler &tas) override {
-     return ((tas.positive_count-tas.negative_count)/(tas.positive_count+tas.negative_count));  
-   }
-   
-   void CreateFileName() override {
-     char str[std::to_string(intermediate_fle_count).length()];
-     std::string str_file_num = sprintf(str, "%d", intermediate_fle_count);
-     intermediate_filename += std::string str_file_num;
-     intermediate_filename += ".txt"; 
-   }
-   
-   std::string* MakeIntermediateFile(std::string input_file_name) override {
-     this.CreateFileName();
-     this.StorePositiveWords();
-     this.StoreNegativeWords();
-     this.task.Map(&input_file_name, &positive_words, &negative_words);
-     sentiment_value = this.CalculateSentiment(TaskHandler task);
-     ofstream inter (intermediate_filename);
-     if (inter.is_open())
-     {
-       inter << input_file_name;
-       inter << " ";
-       inter << std::toString(sentiment_value);
-       inter.close();
-     }
-     else cout << "Unable to open file";
-     return intermediate_filename;
-   }
-   
-   std::string* MakeOutputResult(std::string* lists) {
-     output_result = new std::string(lists.length());
-     output_result = this.task.Reduce(lists);
-     ofstream out ("output.txt");
-     while (out.is_open())
-     {
-       for(int i = 0; i < lists.length(); i++) {
-         out << output_result[i][0];
-         out << " ";
-         out << output_result[i][1] << std::endl;
-     }
-     out.close();
-     return "output.txt";
-   }
-   
   // map<std::string* s, float val> CreateIntermediateFile() override {
   //   intermediate_file.insert(pair<std::string*, float>(intermediate_filename, sentiment_value);
   // }
    
   private:
-    TaskHandler task;
-    float sentiment_value;
     std::string* positive_words;
     std::string* negative_words;
-    std::string* intermediate_filename;
-    std::string* output_result;
+    std::vector<TaskHandler> tasks;
   //  std::map<std::string* s, float val> intermediate_file;
 };
 
 Class TaskHandler {
   public:
-    explicit TaskHandler() : positive_count(0), negative_count(0) {}
+    explicit TaskHandler() : positive_count(0), negative_count(0), sentiment_value(0) {
+      intermediate_filename = "intermediate";
+    }
     virtual ~TaskHandler() {}
+    
+    float CalculateSentiment() override {
+     return ((positive_count-negative_count)/(positive_count+negative_count));  
+   }
+   
+   void CreateFileName() override {
+     char str[intermediate_fle_count.length()];
+     std::string str_file_num = sprintf(str, "%d", intermediate_fle_count);
+     intermediate_filename += std::string str_file_num;
+     intermediate_filename += ".txt"; 
+     intermediate_fle_count++;
+   }
     
     void Map(std::string* filename, std::string* positives, std::string* negatives) override {
       ifstream file;
@@ -220,8 +187,42 @@ Class TaskHandler {
       return file_list;
     }
     
+    std::string MakeIntermediateFile(std::string input_file_name) override {
+     this.CreateFileName();
+     //this.StorePositiveWords();
+     //this.StoreNegativeWords();
+     this.Map(&input_file_name, &positive_words, &negative_words);
+     float sent_val = this.CalculateSentiment();
+     ofstream inter (intermediate_filename);
+     if (inter.is_open()) {
+       inter << input_file_name;
+       inter << " ";
+       inter << std::toString(sent_val);
+       inter.close();
+     }
+     else std::cout << "Unable to open file";
+     return intermediate_filename;
+   }
+   
+   std::string MakeOutputResult(std::string* lists) {
+     output_result = new std::string(lists.length());
+     output_result = this.Reduce(lists);
+     ofstream out ("output.txt");
+     while (out.is_open()) {
+       for(int i = 0; i < lists.length(); i++) {
+         out << output_result[i][0];
+         out << " ";
+         out << output_result[i][1] << std::endl;
+     }
+     out.close();
+     return "output.txt";
+   }
+    
   private:
     int positive_count;
     int negative_count;
     std::string* file_list;
+    float sentiment_value;
+    std::string intermediate_filename;
+    std::string* output_result;
 };

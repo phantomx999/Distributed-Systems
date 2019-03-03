@@ -40,35 +40,35 @@ Class JobHandler {
     void CountFiles(std::string input) {
       unsigned long count = 0;
       struct dirent *direct;
-      DIR *pdir = opendir(intput);
-      if(!pdir)
-      {
+      DIR *pdir = opendir(input);
+      if(!pdir) {
         printf("Failed to open direcoty in CountFiles()\n");
-        return 1;
+        return -1;
       }
       while(direct = readdir(pdir)) {
           ++count;
       }
       closedir(pdir);
-      /*
-      std::string line;
-      ifstream count_file (input);
-      if(!count_file) {
-        std::cout<<"Error opening input file to COUNT number of files"<< std::endl;
-        system("pause");
-        return;
-      }
-      while (getline(count_file, line)) {
-         count++;
-      }
-      count_file.close();
-      */
       number_tasks = (int) count;
+    }
+    
+    std::string PerformJob(std::string input) {
+      struct dirent *direct;
+      DIR *pdir = opendir(input);
+      if(!pdir) {
+        printf("Failed to open direcoty in CountFiles()\n");
+        return -1;
       }
+      while(direct = readdir(pdir)) {
+        data_task_files.push_back(direct);
+      }
+    }
 
   private: 
     int number_tasks;
+    vector<string> data_task_files;
 };
+
 
 
 int main() {

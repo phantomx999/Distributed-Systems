@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
   try {
     transport->open();
     client.CountFiles(&(argv[3]));
+    client.PerformJob(&(argv[3]));
     
     transport->close();
   }
