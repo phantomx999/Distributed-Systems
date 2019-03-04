@@ -1,3 +1,5 @@
+//Compile C++ Code: g++ -std=c++11 -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -Wall -I/usr/local/include/thrift client.cpp -L/usr/local/lib/ -lthrift -o client
+
 namespace cpp project1
 
 struct Job_struct {
@@ -24,8 +26,9 @@ struct Task_struct {
 }
 
 service Job {
-  void CountFiles(1:string var1),
-  string PerformJob(1:string input)
+  bool ping(),
+  void CountFiles(1:string var1)
+  //string PerformJob(1:string input)
 }
 
 service Node {
