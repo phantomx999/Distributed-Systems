@@ -19,6 +19,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <thread> 
+#include <dirent.h>
 
 
 
@@ -28,13 +30,14 @@ using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 using namespace apache::thrift::server;
 
-//static int intermediate_fle_count = 0;
+// if 0: random task scheduler. 1: load-balancing scheduler
+static bool load_balancing_scheduler = 0;
 
 namespace project1 (
 
 Class JobHandler {
   public:
-    JobHandler() : number_tasks(0) {}
+    JobHandler() : number_map_tasks(0), reduce_task(0) {}
     virtual ~JobHandler() {}
     
     void CountFiles(std::string input) {
@@ -49,7 +52,7 @@ Class JobHandler {
           ++count;
       }
       closedir(pdir);
-      number_tasks = (int) count;
+      number_map_tasks = (int) count;
     }
     
     std::string PerformJob(std::string input) {
@@ -62,12 +65,38 @@ Class JobHandler {
       while(direct = readdir(pdir)) {
         data_task_files.push_back(direct);
       }
+      if(!load_balancing_scheduler) {
+        int port_number = 9002;
+        for(int i = 0; i < number_map_tasks; i++) { 
+          std::shared_ptr<TTransport> socket(new TSocket("localhost", port_number);
+          std::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+          std::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+          clients.push_back(protocol);
+          port_number++
+          if(port_number > 9005){
+            port_number = 9002;
+          }
+          transport->open();
+        }
+      }
+      NodeClient client2(protocol);
+      
     }
 
+    static std::string SendTaskToNode(std::string filename) {
+          
+    }  
+
   private: 
-    int number_tasks;
+    int number_map_tasks;
+    int reduce_task;
     vector<string> data_task_files;
+    vector<NodeClient> clients;
 };
+
+static std::string SendTaskToNode(std::string filename) {
+
+}  
 
 
 
@@ -79,9 +108,9 @@ int main() {
     std::make_shared<TBufferedTransportFactory>(),
     std::make_shared<TBinaryProtocolFactory>());
     
-    server.serve();
+  server.serve();
     
-    return 0;
+  return 0;
 }
 
 )

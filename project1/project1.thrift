@@ -2,6 +2,9 @@ namespace cpp project1 {
 
 struct Job_struct (
   1: i64 var1;
+  2: vector<string> var2;
+  3: i64: var3;
+  4: vector<NodeClient> var4;
 ) 
 
 struct Node_struct (
@@ -32,7 +35,6 @@ service Node {
 }
 
 service Task {
-
   void CreateFileName(); 
   float CalculateSentiment();
   void Map(1:std::string filename, 2:std::string* positives, 3:std::string* negatives);

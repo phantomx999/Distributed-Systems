@@ -19,6 +19,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <thread> 
+#include <dirent.h>
 
 static int intermediate_fle_count = 0;
 
@@ -27,6 +29,8 @@ using namespace apache::thrift::concurrency;
 using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 using namespace apache::thrift::server;
+
+namespace project1 {
 
 Class NodeHandler {
   public:
@@ -226,3 +230,15 @@ Class TaskHandler {
     std::string intermediate_filename;
     std::string* output_result;
 };
+
+int main() {
+  TThreadedServer server(
+   // std::make_shared<CalculatorProcessorFactory>(std::make_shared<CalculatorCloneFactory>()),
+  // shared_ptr<HelloSvcHandler> handler(new HelloSvcHandler());
+    std::make_shared<TServerSocket>(9002), //port
+    std::make_shared<TBufferedTransportFactory>(),
+    std::make_shared<TBinaryProtocolFactory>());
+    
+    server.serve();
+
+}

@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 #include <dirent.h>
+#include <thread> 
+
 
 
 //Boost libraries
@@ -36,13 +38,12 @@ int main(int argc, char **argv) {
   std::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
   std::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
   
-  JobClient client(protocol);
+  JobHandler client(protocol);
   
   try {
     transport->open();
     client.CountFiles(&(argv[3]));
-    client.PerformJob(&(argv[3]));
-    
+    std::string output_file = client.PerformJob(&(argv[3]));
     transport->close();
   }
   catch (TException& e) {
