@@ -1,3 +1,8 @@
+/*
+COMPILE USING MAKEFILE: make client
+To Run: ./client "<serverIP>" "<inputDirectory>"
+*/
+
 #include <iostream>
 #include <string>
 #include <map> 
@@ -6,7 +11,8 @@
 #include <dirent.h>
 #include <thread> 
 
-
+#include "gen-cpp/Job.h"
+#include "gen-cpp/Job.cpp"
 
 //Boost libraries
 #include <boost/make_shared.hpp>
@@ -21,38 +27,42 @@
 
 //Namespaces
 using boost::make_shared;
+using boost::shared_ptr;
 using namespace apache::thrift;
 using namespace apache::thrift::transport;
 using namespace apache::thrift::protocol;
 
-namespace project1 (
+using namespace ::project1;
 
 int main(int argc, char **argv) {
 
   if(argc != 3 || argc != 4) {
         printf("Invalid number of arguments\n");
-        printf("Run client with input_directory and mode number (0 = random scheduling (Default), 1 = load scheduling\n");
+        printf("Run ./client <serverIP> <inputDirectory> <mode number> where mode number is optional input\n"
+        printf("mode number: 0 = random scheduling (Default if no mode number user inputted), 1 = load scheduling\n");
         return 1;
   }
   int mode = 0;
   if(argc == 4) {
-    mode = std::stoi(argv[4]);
+    mode = std::stoi(argv[3]);
   }
   if(mode != 0 || mode != 1) {
     std::cerr << "Error with mode input value (must be omitted, 0, or 1 value)\n" << std::endl;
     return 1;
   }
 
-  std::shared_ptr<TTransport> socket(new TSocket("localhost", 9001));
+  char* serverIP = argv[1];
+  char* inputDir = argv[2];
+  std::shared_ptr<TTransport> socket(new TSocket(serverIP, 9001));
   std::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
   std::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
   
-  JobHandler client(protocol);
+  JobClient client(protocol);
   
   try {
     transport->open();
-    client.CountFiles(argv[3]);
-    std::string output_file = client.PerformJob(argv[3], mode);
+    client.CountFiles(inputDir);
+    std::string output_file = client.PerformJob(inputDir, mode);
     transport->close();
   }
   catch (TException& e) {
@@ -62,4 +72,4 @@ int main(int argc, char **argv) {
 
 }
 
-)
+

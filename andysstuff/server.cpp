@@ -1,9 +1,14 @@
+/*
+COMPILE USING MAKEFILE: make server
+To Run: ./server
+*/
+
 #include <thrift/concurrency/ThreadManager.h>
-#include <thrift/concurrency/ThreadFactory.h>
+//#include <thrift/concurrency/ThreadFactory.h>
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/server/TSimpleServer.h>
 #include <thrift/server/TThreadPoolServer.h>
-#include <thrift/server/TThreadedServer.h>
+//#include <thrift/server/TThreadedServer.h>
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
@@ -22,18 +27,27 @@
 #include <vector>
 #include <thread> 
 #include <dirent.h>
+#include <stdio.h>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
+#include "gen-cpp/Job.h"
+#include "gen-cpp/Job.cpp"
+#include "gen-cpp/Node.h"
+#include "gen-cpp/Node.cpp"
+#include "gen-cpp/Task.h"
+#include "gen-cpp/Task.cpp"
 
 
 using namespace apache::thrift;
-using namespace apache::thrift::concurrency;
+//using namespace apache::thrift::concurrency;
 using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 using namespace apache::thrift::server;
 
-namespace project1 {
+using namespace  ::project1;
+using boost::shared_ptr;
+using boost::make_shared;
 
 Class JobHandler :  virtual public JobIf {
   public:
@@ -131,10 +145,11 @@ Class JobHandler :  virtual public JobIf {
         }
         return final_file;
       }
-      else {
-        
-      }
+    //  else {
+    //    
+    //  }
       //////////////////////////////      
+      return "";
     }
 
   private: 
@@ -143,27 +158,73 @@ Class JobHandler :  virtual public JobIf {
     int reduce_task;
     vector<string> intermediate_files;  
     std::string final_file;
-    int load_balancing_scheduler = 0;
-    NodeHandler n1;  //computers to run nodes
+    int load_balancing_scheduler;
+    NodeHandler n1;  //computers to run as nodes
     NodeHandler n2;
     NodeHandler n3;
     NodeHandler n4;
     //vector<NodeHandler> clients;
 }; 
 
+class JobCloneFactory : virtual public JobIfFactory {
+ public:
+  ~JobCloneFactory() override = default;
+  JobIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) override
+  {
+    std::shared_ptr<TSocket> sock = std::dynamic_pointer_cast<TSocket>(connInfo.transport);
+    cout << "Incoming connection\n";
+    cout << "\tSocketInfo: "  << sock->getSocketInfo() << "\n";
+    cout << "\tPeerHost: "    << sock->getPeerHost() << "\n";
+    cout << "\tPeerAddress: " << sock->getPeerAddress() << "\n";
+    cout << "\tPeerPort: "    << sock->getPeerPort() << "\n";
+    return new JobHandler;
+  }
+  void releaseHandler( ::shared::SharedServiceIf* handler) override {
+    delete handler;
+  }
+};
 
 
 int main() {
+/*
   TThreadedServer server(
-   // std::make_shared<CalculatorProcessorFactory>(std::make_shared<CalculatorCloneFactory>()),
-  // shared_ptr<HelloSvcHandler> handler(new HelloSvcHandler());
+    std::make_shared<JobProcessorFactory>(shared_ptr<JobCloneFactory>()),
+    std::make_shared<JobHandler> handler(new JobHandler());
     std::make_shared<TServerSocket>(9001), //port
     std::make_shared<TBufferedTransportFactory>(),
     std::make_shared<TBinaryProtocolFactory>());
     
   server.serve();
+*/
+
+const int workerCount = 4;
+  shared_ptr<ThreadManager> threadManager =
+    ThreadManager::newSimpleThreadManager(workerCount);
+  threadManager->threadFactory(
+    make_shared<ThreadFactory>());
+  threadManager->start();
+  // This server allows "workerCount" connection at a time, and reuses threads
+  TThreadPoolServer server1(
+    shared_ptr<JobProcessorFactory>(shared_ptr<JobCloneFactory>()),
+    shared_ptr<TServerSocket>(9090),
+    shared_ptr<TBufferedTransportFactory>(),
+    shared_ptr<TBinaryProtocolFactory>(),
+    threadManager);
+
+  //This is a simple server for the Client connection
+
+  shared_ptr<JobHandler> handler(new JobHandler());
+  shared_ptr<TProcessor> processor(new JobProcessor(handler));
+  shared_ptr<TServerTransport> serverTransport(new TServerSocket(9001));
+  shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
+  shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
+
+  TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
+  printf("We are up and running!\n");
+  server.serve();
+
     
   return 0;
 }
 
-}
+

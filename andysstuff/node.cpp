@@ -1,9 +1,9 @@
 #include <thrift/concurrency/ThreadManager.h>
-#include <thrift/concurrency/ThreadFactory.h>
+//#include <thrift/concurrency/ThreadFactory.h>
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/server/TSimpleServer.h>
 #include <thrift/server/TThreadPoolServer.h>
-#include <thrift/server/TThreadedServer.h>
+//#include <thrift/server/TThreadedServer.h>
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
@@ -22,6 +22,12 @@
 #include <vector>
 #include <thread> 
 #include <dirent.h>
+#include <stdio.h>
+
+#include "gen-cpp/Node.h"
+#include "gen-cpp/Node.cpp"
+#include "gen-cpp/Task.h"
+#include "gen-cpp/Task.cpp"
 
 static int intermediate_fle_count = 0;
 
@@ -31,7 +37,9 @@ using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 using namespace apache::thrift::server;
 
-namespace project1 {
+using namespace  ::project1;
+using boost::shared_ptr;
+using boost::make_shared;
 
 Class NodeHandler : virtual public NodeIf {
   public:
@@ -149,15 +157,14 @@ Class NodeHandler : virtual public NodeIf {
    }
    
   private:
-    std::vector<string> positive_words;
-    std::vector<string> negative_words;
+    std::vector<std::string> positive_words;
+    std::vector<std::string> negative_words;
     std::vector<TaskHandler> tasks;
     int node_num;
     double node_load;
     std::string node_host;
     int node_port;
     int num_tasks;
-  //  std::map<std::string* s, float val> intermediate_file;
 };
 
 Class TaskHandler : virtual public TaskIf {
@@ -275,7 +282,7 @@ Class TaskHandler : virtual public TaskIf {
   private:
     int positive_count;
     int negative_count;
-    std::vector<string> file_list;
+    std::vector<std::string> file_list;
     double sentiment_value;
     std::string intermediate_filename;
     std::vector<std::string> output_result;
