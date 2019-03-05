@@ -1,6 +1,5 @@
 /*
 COMPILE USING MAKEFILE: make client
-
 To Run: ./client "<serverIP>" "<inputDirectory>"
 */
 
@@ -11,9 +10,10 @@ To Run: ./client "<serverIP>" "<inputDirectory>"
 #include <vector>
 #include <dirent.h>
 #include <thread>
+#include <inttypes.h>
 
-#include "Job.cpp"
 #include "Job.h"
+#include "Job.cpp"
 
 //Boost libraries
 #include <boost/make_shared.hpp>
@@ -37,10 +37,21 @@ using namespace ::project1;
 
 int main(int argc, char **argv) {
 
-  if(argc != 3) {
-        printf("Usage: ./count \"<path>\"\n");
+  if(argc != 3 || argc != 4) {
+        printf("Invalid number of arguments\n");
+        printf("Run ./client <serverIP> <inputDirectory> <mode number> where mode number is optional input\n");
+        printf("mode number: 0 = random scheduling (Default if no mode number user inputted), 1 = load scheduling\n");
         return 1;
   }
+  int64_t mode = 0;
+  if(argc == 4) {
+    mode = std::stoi(argv[3]);
+  }
+  if(mode != 0 || mode != 1) {
+    std::cerr << "Error with mode input value (must be omitted, 0, or 1 value)\n" << std::endl;
+    return 1;
+  }
+
   char* serverIP = argv[1];
   char* inputDir = argv[2];
   shared_ptr<TTransport> socket(new TSocket(serverIP, 9001));
@@ -49,13 +60,14 @@ int main(int argc, char **argv) {
 
   JobClient client(protocol);
 
-
   try {
     transport->open();
-    client.ping();
-    printf("Pinging()..\n");
+    printf("Sending Input Directory. . . \n");
     client.CountFiles(inputDir);
-    //std::string output_file = client.PerformJob(&(argv[3]));
+    std::string output_file;
+    printf("Requesting Job. . .\n");
+    client.PerformJob(output_file, inputDir, mode);
+    printf("Jobs Done!\n");
     transport->close();
   }
   catch (TException& e) {
