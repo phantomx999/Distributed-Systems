@@ -1,13 +1,15 @@
 make: client server node
 
 client: client.cpp
-	g++ -std=c++11 -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -Wall -I/usr/local/include/thrift client.cpp -L/usr/local/lib/ -lthrift -o client
+	g++ -std=c++11 -Wall -I/usr/local/include/thrift client.cpp project1_constants.cpp project1_types.cpp -o client -lthrift
 
 server: server.cpp
-	g++ -std=c++11 -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -Wall -I/usr/local/include/thrift server.cpp -L/usr/local/lib/ -lthrift -o server
+	g++ -std=c++11 -Wall -I/usr/local/include/thrift server.cpp project1_constants.cpp project1_types.cpp -o server -lthrift
 
 node: node.cpp
-	g++ -std=c++11 -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -Wall -I/usr/local/include/thrift node.cpp -L/usr/local/lib/ -lthrift -o node
+	g++ -std=c++11 -Wall -I/usr/local/include/thrift node.cpp project1_constants.cpp project1_types.cpp -o node -lthrift
 
+test: Job_server.skeleton.cpp
+	g++ -std=c++11 -Wall -I/usr/local/include/thrift Job_server.skeleton.cpp project1_constants.cpp project1_types.cpp -o server_test -lthrift
 clean:
-	rm client server node
+	rm client server node server_test
