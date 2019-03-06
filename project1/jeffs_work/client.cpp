@@ -12,8 +12,8 @@ To Run: ./client "<serverIP>" "<inputDirectory>"
 #include <thread>
 #include <inttypes.h>
 
-#include "Job.h"
-#include "Job.cpp"
+#include "gen-cpp/Job.h"
+#include "gen-cpp/Job.cpp"
 
 //Boost libraries
 #include <boost/make_shared.hpp>
@@ -65,12 +65,11 @@ int main(int argc, char **argv) {
     transport->open();
     client.ping();
     printf("Sending Input Directory. . . \n");
-    //client.CountFiles(inputDir);
+    client.CountFiles(inputDir);
     std::string output_file;
     printf("Requesting Job. . .\n");
-    //client.PerformJob(output_file, inputDir, mode);
+    client.PerformJob(output_file, inputDir, mode);
     printf("Jobs Done!\n");
-    while(1);
     transport->close();
   }
   catch (TException& e) {

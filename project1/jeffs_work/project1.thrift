@@ -1,4 +1,4 @@
-namespace cpp project1 
+namespace cpp project1
 
 struct Job_struct {
   1: i64 var1,
@@ -16,7 +16,7 @@ struct Job_struct {
 struct Node_struct {
   1: list<string> fileNames,
   2: list<double> sentiment,
-  3: i64 uniqueID,  
+  3: i64 uniqueID,
   4: i64 numberOfFiles,
   5: double var5,
   6: string intermediary,
@@ -32,12 +32,12 @@ struct Task_struct {
   4: double var4,
   5: string var5,
   6: list<string> var6
-} 
+}
 
 service Job {
   bool ping();
   bool GetStatus(),
-  string GetTasks(1:Node_struct n),
+  Node_struct GetTasks(),
   void CountFiles(1:string var1),
   string PerformJob(1:string input, 2:i64 mode)
 }
@@ -52,13 +52,9 @@ service Node {
 
 service Task {
   double CalculateSentiment(),
-  void CreateFileName(), 
+  void CreateFileName(),
   void Map(1:string filename, 2:list<string> positives, 3:list<string> negatives),
   list<string> Reduce(1:list<string> filenames),
   string MakeIntermediateFile(1:string input_file_name, 2:list<string> positive, 3:list<string> negative),
   string MakeOutputResult (1:list<string> lists)
 }
-
-
-
-

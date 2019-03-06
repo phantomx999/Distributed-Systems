@@ -18,16 +18,17 @@
 #include <sstream>
 #include <map>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <thread>
 #include <dirent.h>
 #include <stdio.h>
 
-#include "Job.h"
-#include "Job.cpp"
+#include "gen-cpp/Job.h"
+#include "gen-cpp/Job.cpp"
 
-static int intermediate_fle_count = 0;
+//static int intermediate_fle_count = 0;
 
 using namespace apache::thrift;
 using namespace apache::thrift::concurrency;
@@ -285,6 +286,97 @@ Class TaskHandler : virtual public TaskIf {
     std::vector<std::string> output_result;
 };*/
 
+std::vector <std::string> positive_words;
+std::vector <std::string> negative_words;
+
+void StorePositiveWords(std::string pos_words_file) {
+
+ int count_words = 0;
+
+ std::string line;
+ printf("Opening %s for positive words.\n", pos_words_file.c_str());
+ std::cout <<"Opening "<< pos_words_file << " for pos words" << std::endl;
+ std::ifstream count_file;
+ count_file.open(pos_words_file);
+ if(!count_file) {
+   std::cout<<"Error opening positive.txt file to COUNT words"<< std::endl;
+   system("pause");
+   return;
+ }
+ while (getline(count_file, line)) {
+    count_words++;
+ }
+
+ count_file.close();
+ printf("%s has %d words\n", pos_words_file.c_str(), count_words);
+
+ std::ifstream pos_file;
+ pos_file.open(pos_words_file);
+ if(!pos_file) {
+   std::cout<<"Error opening positive.txt file to STORE words"<< std::endl;
+   system("pause");
+   return;
+ }
+
+ while (!pos_file.eof()) {
+   getline (pos_file, line);
+   positive_words.push_back(line);
+ }
+ printf("Positive words are loaded.\n");
+
+/*
+ std::string temp[1];
+ while(!pos_file.eof()) {
+   getline(pos_file, temp);
+   positive_words.push_back(temp);
+   temp = "";
+ }*/
+ pos_file.close();
+
+ return;
+}
+/*
+void StoreNegativeWords() {
+
+ int count_words = 0;
+ std::string line;
+
+ ifstream count_file ("negative.txt");
+ if(!count_file) {
+   std::cout<<"Error opening negative.txt file to COUNT words"<< std::endl;
+   system("pause");
+   return;
+ }
+
+ while (getline(count_file, line)) {
+    count_words++;
+ }
+ count_file.close();
+
+ ifstream neg_file ("negative.txt");
+ if(!neg_file) {
+   std::cout<<"Error opening positive.txt file to STORE words"<< std::endl;
+   system("pause");
+   return;
+ }
+
+ negative_words = new std::string[count_words];
+ int index = 0;
+ while (!neg_file.eof()) {
+   getline (neg_file, negative_words[index]);
+   index++;
+ }
+
+ std::string temp[1];
+ while(!neg_file.eof()) {
+   getline(neg_file, temp);
+   negative_words.push_back(temp);
+   temp = "";
+ }
+ neg_file.close();
+ return;
+}
+*/
 int main(int argc, char **argv) {
   printf("%d\n",argc);
   if(argc != 2 && argc != 3) {
@@ -292,12 +384,12 @@ int main(int argc, char **argv) {
         printf("Run ./node <serverIP> <port>\n");
         return 1;
   }
-  int64_t port = 0;
+  //int64_t port = 0;
   if(argc == 3) {
     //port = std::stoi(argv[3]);
   }
   printf("Getting ready for connection\n");
-  char* serverIP = argv[1];
+  //char* serverIP = argv[1];
   shared_ptr<TTransport> socket(new TSocket("localhost", 9001));
   shared_ptr<TTransport> transport(new TBufferedTransport(socket));
   shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
@@ -305,7 +397,11 @@ int main(int argc, char **argv) {
   JobClient client(protocol);
 
   //Load Pos and Neg words into memory
-
+  StorePositiveWords("data/positive.txt");
+  for(int i = 0; i < positive_words.size(); i++){
+    printf("%s\n",positive_words.at(i).c_str());
+    i+= 10;
+  }
   Node_struct n;
   std::string _return;
 
@@ -315,13 +411,13 @@ int main(int argc, char **argv) {
     while(!client.GetStatus());
     if(client.GetStatus()){
       //Get Tasks
-      client.GetTasks(_return, n);
+      client.GetTasks(n);
       //Spin a thread for each task, CalculateSentiment
     }
+    printf("Received: Node[%d] It has %d files\n", n.uniqueID, n.numberOfFiles);
     printf("Making Contact. . . \n");
     printf("Requesting Job. . .\n");
     printf("Jobs Done!\n");
-    while(1);
     transport->close();
   }
   catch (TException& e) {
