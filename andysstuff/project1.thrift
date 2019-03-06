@@ -1,4 +1,4 @@
-namespace cpp project1 
+mnamespace cpp project1 
 
 struct Job_struct {
   1: i64 var1,
@@ -53,6 +53,7 @@ service Task {
   string MakeIntermediateFile(1:string input_file_name, 2:list<string> positive, 3:list<string> negative),
   string MakeOutputResult (1:list<string> lists);
 }
+
 
 
 

@@ -170,7 +170,7 @@ Class NodeHandler : virtual public NodeIf {
 Class TaskHandler : virtual public TaskIf {
   public:
     explicit TaskHandler() : positive_count(0), negative_count(0), sentiment_value(0.0) {
-      intermediate_filename = "intermediate";
+      intermediate_filename = "intermediate_dir/intermediate";
     }
     
     virtual ~TaskHandler() {}

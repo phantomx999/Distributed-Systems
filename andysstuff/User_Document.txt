@@ -1,0 +1,79 @@
+Andrew Steinbrueck
+Student ID: 3949010
+X500:  stein936
+Jeffrey Dickinson
+Student ID:
+X500:
+
+User Document:
+
+First, make sure CSE lab computer has the correct thrift files.  You can do this by 
+typing 
+
+> ssh atlas.cselabs.umn.edu  
+
+in terminal while in the CSE network.  Then type command
+
+> locate libthrift
+
+to make sure thrift is "/usr/local/lib/libthrift.so" file is located there.  
+
+Open folder and run 
+
+> thrift --gen cpp project1.thrift
+
+to create gen-cpp folder.  
+
+Now move server.cpp, client.cpp, and node.cpp files into gen-cpp.  Then go
+into gen-app directory
+
+> cd gen-app
+
+Now type
+
+> make
+
+from the makefile to compile client.cpp, server.cpp, and node.cpp.
+
+(Side Note:
+to run client only
+> make client
+
+to run server only
+> make server
+
+to run node only
+> make node
+
+to run test
+> make test)
+
+After client.cpp, server.cpp, and node.cpp have been compiled, open up several
+terminals.  
+
+In another window, to run server:
+
+> ./server
+
+In one terminal window, type
+
+> ./client <ip> <port> "test" <mode number>
+
+where in this example ip is ip address ("localhost"), port is port being run on, test is ,
+and mode number is the type of scheduling for program to run 
+(1 for random, 2 for load probability).
+
+In other windows, to run node(s): 
+
+> ./node <id address> <port>
+
+Multiple nodes can be run, one node per terminal window. 
+
+Once client, server, and node(s) windows are all connected and up and running   
+
+
+
+
+
+
+
