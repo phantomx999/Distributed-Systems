@@ -24,6 +24,7 @@
 #include <thread>
 #include <dirent.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include "gen-cpp/Job.h"
 #include "gen-cpp/Job.cpp"
@@ -39,6 +40,9 @@ using namespace apache::thrift::server;
 using namespace  ::project1;
 using boost::shared_ptr;
 using boost::make_shared;
+
+Node_struct n;
+
 /*
 class NodeHandler : virtual public NodeIf {
   public:
@@ -285,6 +289,69 @@ Class TaskHandler : virtual public TaskIf {
     std::string intermediate_filename;
     std::vector<std::string> output_result;
 };*/
+/************ THREADS ************/
+#define MAX_THREADS 300
+struct argsForThreads{
+    //Put stuff here to pass to the threads
+    std::string text_file;
+    int index_in_vect;
+};
+
+//Function for threads
+void* executeTask(void* args){
+  struct argsForThreads* thread_input;
+  thread_input = (struct argsForThreads *) args;
+  printf("File: %s  and index: %d\n", thread_input->text_file.c_str(), thread_input->index_in_vect);
+
+  std::vector <std::string> words;
+  std::string line;
+  float num_positive_words = 0;
+  float num_negative_words = 0;
+  float sentiment = 0;
+  //Open folder and put words into a vector;
+  std::ifstream file;
+  file.open(thread_input->text_file.c_str());
+  if(!file) {
+    std::cout<<"Error opening file to STORE words"<< std::endl;
+    system("pause");
+    return;
+  }
+
+  while (!file.eof()) {
+    getline (file, line);
+    words.push_back(line);
+  }
+  printf("Positive words are loaded.\n");
+  file.close();
+  //Count positive and negative
+  bool flag_to_reduce_time = false;
+  for(int i = 0; i < words.size(); i++){
+    for(int j = 0; j < positive_words.size(); j++){
+      if(!positive_words.at(j).compare(words.at(i))){
+        //Match
+        num_positive_words++;
+        flag_to_reduce_time = true;
+        break;
+      }
+    }
+    if(!flag_to_reduce_time){//if positive wasn't found, check negative
+      for(int k = 0; k < negative_words.size(); k++){
+        if(!negative_words.at(j).compare(words.at(i))){
+          //Match
+          num_negative_words++;
+          break;
+        }
+      }
+    }
+    flag_to_reduce_time = false;
+  }
+  //CalculateSentiment
+  sentiment = (num_positive_word - num_negative_words) / (num_positive_word + num_negative_words);
+  //Store in node
+
+  pthread_exit(NULL);
+};
+/********* END THREADS ***********/
 
 std::vector <std::string> positive_words;
 std::vector <std::string> negative_words;
@@ -299,7 +366,7 @@ void StorePositiveWords(std::string pos_words_file) {
  std::ifstream count_file;
  count_file.open(pos_words_file);
  if(!count_file) {
-   std::cout<<"Error opening positive.txt file to COUNT words"<< std::endl;
+   std::cout<<"Error opening file to COUNT words"<< std::endl;
    system("pause");
    return;
  }
@@ -313,7 +380,7 @@ void StorePositiveWords(std::string pos_words_file) {
  std::ifstream pos_file;
  pos_file.open(pos_words_file);
  if(!pos_file) {
-   std::cout<<"Error opening positive.txt file to STORE words"<< std::endl;
+   std::cout<<"Error opening file to STORE words"<< std::endl;
    system("pause");
    return;
  }
@@ -323,60 +390,50 @@ void StorePositiveWords(std::string pos_words_file) {
    positive_words.push_back(line);
  }
  printf("Positive words are loaded.\n");
-
-/*
- std::string temp[1];
- while(!pos_file.eof()) {
-   getline(pos_file, temp);
-   positive_words.push_back(temp);
-   temp = "";
- }*/
  pos_file.close();
 
  return;
 }
-/*
-void StoreNegativeWords() {
 
- int count_words = 0;
- std::string line;
+void StoreNegativeWords(std::string neg_words_file) {
 
- ifstream count_file ("negative.txt");
- if(!count_file) {
-   std::cout<<"Error opening negative.txt file to COUNT words"<< std::endl;
-   system("pause");
-   return;
- }
+  int count_words = 0;
 
- while (getline(count_file, line)) {
-    count_words++;
- }
- count_file.close();
+  std::string line;
+  printf("Opening %s for negative words.\n", neg_words_file.c_str());
+  std::ifstream count_file;
+  count_file.open(neg_words_file);
+  if(!count_file) {
+    std::cout<<"Error opening file to COUNT words"<< std::endl;
+    system("pause");
+    return;
+  }
+  while (getline(count_file, line)) {
+     count_words++;
+  }
 
- ifstream neg_file ("negative.txt");
- if(!neg_file) {
-   std::cout<<"Error opening positive.txt file to STORE words"<< std::endl;
-   system("pause");
-   return;
- }
+  count_file.close();
+  printf("%s has %d words\n", neg_words_file.c_str(), count_words);
 
- negative_words = new std::string[count_words];
- int index = 0;
- while (!neg_file.eof()) {
-   getline (neg_file, negative_words[index]);
-   index++;
- }
+  std::ifstream neg_file;
+  neg_file.open(neg_words_file);
+  if(!neg_file) {
+    std::cout<<"Error opening file to STORE words"<< std::endl;
+    system("pause");
+    return;
+  }
 
- std::string temp[1];
- while(!neg_file.eof()) {
-   getline(neg_file, temp);
-   negative_words.push_back(temp);
-   temp = "";
- }
- neg_file.close();
- return;
+  while (!neg_file.eof()) {
+    getline (neg_file, line);
+    negative_words.push_back(line);
+  }
+  printf("Negative words are loaded.\n");
+  neg_file.close();
+
+  return;
 }
-*/
+
+
 int main(int argc, char **argv) {
   printf("%d\n",argc);
   if(argc != 2 && argc != 3) {
@@ -398,11 +455,17 @@ int main(int argc, char **argv) {
 
   //Load Pos and Neg words into memory
   StorePositiveWords("data/positive.txt");
-  for(int i = 0; i < positive_words.size(); i++){
-    printf("%s\n",positive_words.at(i).c_str());
-    i+= 10;
-  }
-  Node_struct n;
+  StoreNegativeWords("data/negative.txt");
+  /*
+  for(int i = 0; i < positive_words.size() && i < negative_words.size(); i++){
+    printf("Pos: %s\n",positive_words.at(i).c_str());
+    printf("Neg: %s\n",negative_words.at(i).c_str());
+    i+= 50;
+  }*/
+  pthread_t tid[MAX_THREADS];
+  int tidIndex = 0;
+  struct argsForThreads temp[MAX_THREADS];
+
   std::string _return;
 
   try {
@@ -412,9 +475,30 @@ int main(int argc, char **argv) {
     if(client.GetStatus()){
       //Get Tasks
       client.GetTasks(n);
+
+      //For each file create a thread
+      for(int i = 0; i < n.numberOfFiles; i++){
+        temp[i].text_file = n.fileNames.at(i);
+        temp[i].index_in_vect = i;
+        if(tidIndex == (MAX_THREADS - 1)){
+          for(int i =0; i < MAX_THREADS; i++){
+            pthread_join(tid[i],NULL);
+          }
+          tidIndex = 0;
+          pthread_create(&tid[tidIndex], NULL, executeTask, (void*) &temp[i]);
+          tidIndex++;
+        }
+        else{
+          pthread_create(&tid[tidIndex], NULL, executeTask, (void*) &temp[i]);
+          tidIndex++;
+        }
+      }
+      for(int i = 0; i < MAX_THREADS; i++){
+        pthread_join(tid[i], NULL);
+      }
       //Spin a thread for each task, CalculateSentiment
     }
-    printf("Received: Node[%d] It has %d files\n", n.uniqueID, n.numberOfFiles);
+    printf("Received: Node[%d] It has %d files\n", (int) n.uniqueID, (int) n.numberOfFiles);
     printf("Making Contact. . . \n");
     printf("Requesting Job. . .\n");
     printf("Jobs Done!\n");
@@ -423,6 +507,10 @@ int main(int argc, char **argv) {
   catch (TException& e) {
     std::cout << "ERROR: " << e.what() << std::endl;
   }
+
+  //Vector Cleanup
+  positive_words.clear();
+  negative_words.clear();
   return 0;
 
 
