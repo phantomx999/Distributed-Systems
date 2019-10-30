@@ -1,0 +1,100 @@
+Andrew Steinbrueck
+Student ID: 3949010
+X500:  stein936
+Jeffrey Dickinson
+Student ID: 5007790
+X500: dick098
+
+User Document:
+
+First, make sure CSE lab computer has the correct thrift files.  You can do this by 
+typing 
+
+> ssh atlas.cselabs.umn.edu  
+
+in terminal while in the CSE network.  Then type command
+
+> locate libthrift
+
+to make sure correct thrift file is located there.  
+
+Open folder and run 
+
+> thrift -r --gen cpp project1.thrift
+
+to create gen-cpp folder.  
+
+In the same current directory, type
+
+> make
+
+from the makefile to compile client.cpp, server.cpp, and node.cpp, as well as constants *.cpp files, etc.   
+
+Side Note:
+to make client only
+> make client
+
+to make server only
+> make server
+
+to make node only
+> make node
+
+
+Now that client.cpp, server.cpp, and node.cpp have been compiled, open up at least 6
+terminal windows (1 for client, 1 for server, 4+ for nodes).  
+
+Now first run the server......
+
+In first window, to run server, type:
+
+> ./server <node1 load_value> <node2 load_value> <node3 load_value> <node4 load_value> 
+
+where nodeN load_value is the probability load value for each respective node.  
+
+For example:
+ 
+> ./server 0.1 0.3 0.5 0.9 
+
+
+After this, in another terminal window, type
+
+> ./client <ip> <port> <input_directory> <mode number>
+
+where in this example,  ip is ip address ("localhost"), port is port being run on, input directory is the input file to perform the job on,
+and mode number is the type of scheduling for program to run 
+(1 for random, 2 for load probability, and if no char entered, then automatically runs random).
+
+for example:
+
+> ./client localhost port data/example 1
+
+
+
+After this, in other terminal windows, to run a node: 
+
+> ./node <id address> <port>
+
+for example:
+
+> ./node localhost 9002
+
+
+Multiple nodes can be run, one node per terminal window.  4 or greater nodes can be run for program.   
+
+PROJECT DIRECTORY STRUCTURE
+
+>gen-cpp >***thrift generated code***
+>server.cpp
+>client.cpp
+>project1.thrift
+>node.cpp
+>makefile
+>output_file.txt   
+
+
+
+
+
+
+

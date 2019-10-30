@@ -18,11 +18,13 @@ struct Node_struct {
   2: list<double> sentiment,
   3: i64 uniqueID,
   4: i64 numberOfFiles,
-  5: double var5,
+  5: double load,
   6: string intermediary,
-  7: i64 var7,
+  7: string cwd,
   8: bool isTaken,
-  9: bool isLastTask
+  9: bool isDone,
+  10: list<i64> pos_words,
+  11: list<i64> neg_words
 }
 
 struct Task_struct {
@@ -36,8 +38,11 @@ struct Task_struct {
 
 service Job {
   bool ping();
+  void SendLoad(1: Node_struct n, 2:double load),
   bool GetStatus(),
   Node_struct GetTasks(),
+  void StatusUpdate(1: Node_struct n),
+  bool ReadyForSort(),
   void CountFiles(1:string var1),
   string PerformJob(1:string input, 2:i64 mode)
 }

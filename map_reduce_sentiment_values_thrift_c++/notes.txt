@@ -1,0 +1,18 @@
+Note:
+
+We were off by about 5% from the expected sentiment value results.  
+
+We also did not get the sort function working for the output.txt file returned to client.  
+
+For analysis of our times based on the graph, we noticed the random
+timing schedule did not have much of a difference for prob-load values 
+except for when all load values for all nodes equaled 0.0.
+Moreover, for our load scheduling policy, when prob-load values 
+were low and equal (0.1 or 0.0), our time results were lower as well.   
+
+You can run different test results for load-prob for various nodes by simply running
+
+> ./server <node1 load_val> <node2 load_val> <node3 load_val> <node4 load_val> ......
+
+All of our test prob-load values that we tested are written out and displayed on our graph.  
+Please view Graph_PA1.jpg

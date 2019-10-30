@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
+#include <ctime>
+#include <chrono>
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
@@ -44,7 +46,7 @@ bool isDone = false;
 
 const int NUMBER_OF_NODES = 4;
 Node_struct node[NUMBER_OF_NODES];
-
+int g_node_iterator = 0;
 class JobHandler : virtual public JobIf {
  public:
   JobHandler() : number_map_tasks(0), load_balancing_scheduler(0), reduce_tasks(0){
@@ -62,7 +64,6 @@ class JobHandler : virtual public JobIf {
     printf("Opening: %s\n", var1.c_str());
     struct dirent* direct;
     DIR *pdir = opendir(var1.c_str());
-    printf("here\n");
     if(!pdir) {
       printf("Failed to open directory in CountFiles()\n");
       exit(-1);
@@ -73,6 +74,10 @@ class JobHandler : virtual public JobIf {
     }
     closedir(pdir);
     printf("A total of %i tasks in this job.\n", count + 1);
+    if(count == 0) {
+      printf("No text files for inputted directory, aborting job");
+      exit(1);
+    }
     number_map_tasks = (int) count;
   }
 
@@ -87,14 +92,41 @@ class JobHandler : virtual public JobIf {
     printf("getStatus\n");
   }
 
+  void StatusUpdate(const Node_struct& n) {
+    // Your implementation goes here
+    node[n.uniqueID].isDone = true;
+    printf("Node[%d] finished.\n", n.uniqueID);
+  }
+
+  bool ReadyForSort() {
+    // Your implementation goes here
+    bool flag = true;
+    for(int i = 0; i < NUMBER_OF_NODES; i++){
+      if(!node[i].isDone){
+        flag = false;
+      }
+    }
+    if(flag){
+      isDone = flag;
+    }
+    return flag;
+    printf("ReadyForSort\n");
+  }
+
+  void SendLoad(const Node_struct& n, const double load) {
+    // Your implementation goes here
+    node[g_node_iterator].load = load;
+    g_node_iterator++;
+    printf("Node[%d] has load of %f\n", g_node_iterator, node[g_node_iterator].load);
+  }
+
   void GetTasks(Node_struct& _return) {
     // Your implementation goes here
-    printf("GetTasks\n");
     for(int i = 0; i < NUMBER_OF_NODES; i++){
       if(!node[i].isTaken){
         node[i].isTaken = true;
         _return = node[i];
-        printf("Returning Node[%d]\n", i);
+        printf("Sending to Node[%d]\n", i);
         break;
       }
     }
@@ -102,8 +134,10 @@ class JobHandler : virtual public JobIf {
 
   void PerformJob(std::string& _return, const std::string& input, const int64_t mode) {
     // Your implementation goes here
+    for(int i = 0; i < NUMBER_OF_NODES; i++){
+        node[i].cwd = input + "/";
+    }
 
-    printf("PerformJob\n");
     if(load_balancing_scheduler){
       printf("Load Balancing has been selected.\n");
     }
@@ -125,26 +159,52 @@ class JobHandler : virtual public JobIf {
       //Assign tasks randomly
       srand (time(NULL));
       for(int i = 0; i < (number_map_tasks+reduce_tasks); i++) {
-        random_num = (rand() % 4);
-        printf("what: %d\n", rand()%4);
+        random_num = (rand() % NUMBER_OF_NODES);
         temp_for_pushing = data_task_files[i];
         node[random_num].fileNames.push_back(temp_for_pushing);
-        printf("Task assigned to: Node %d\n", random_num);
+        node[random_num].sentiment.push_back(0.0);
+        node[random_num].neg_words.push_back(0.0);
+        node[random_num].pos_words.push_back(0.0);
+        //printf("Task assigned to: Node %d\n", random_num);
       }
-
     }
     else {
+      int task = 0;
+      int random_node = 2;
+      srand (time(NULL));
+      while(task <  number_map_tasks) {
+        random_node = (rand() % NUMBER_OF_NODES);
+        float random_load = (float) ((float) rand() / (RAND_MAX));
+        printf("random_load: %f\n", random_load);
+        if(node[random_node].load < random_load) {
+          temp_for_pushing = data_task_files[task];
+          node[random_node].fileNames.push_back(temp_for_pushing);
+          node[random_node].sentiment.push_back(0.0);
+          node[random_node].neg_words.push_back(0.0);
+          node[random_node].pos_words.push_back(0.0);
+          printf("Task assigned to: Node %i\n", random_node);
+          task++;
+        }
+        else{
+          std::cout << "Node " << random_node << "\trejected task " << task << "\n";
+        }
+      }
     }
     data_task_files.clear();
     for(int i = 0; i < NUMBER_OF_NODES; i++){
       //printf("Node %i task 1: %s", i, node[i].fileNames.at(0));
       node[i].numberOfFiles = node[i].fileNames.size();
-      std::cout << node[i].fileNames.at(0) << "   Size: " << node[i].numberOfFiles<< std::endl;
     }
+
+    //std::clock_t begin = clock();
+    auto start = std::chrono::high_resolution_clock::now();
     isReady = true;
     while(!isDone);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << "Time taken: " << duration.count() << " microseconds" << std::endl;
     //////////////////////////////
-    _return = "";
+    _return = "final_output.txt";
 
   }
 private:
@@ -160,8 +220,16 @@ int main(int argc, char **argv) {
   //initializating the node_structs
   for(int i = 0; i < NUMBER_OF_NODES; i++){
     node[i].uniqueID = i;
+    node[i].isTaken = false;
+    node[i].load = std::stof(argv[1+i]);
+    printf("node %d has %f\n" , i, node[i].load);
   }
 
+  if(node[0].load == 1.0 && node[1].load == 1.0 && node[2].load == 1.0 && node[3].load == 1.0){
+    printf("Can't have all loads = 1\n");
+    exit(1);
+  }
+  //int port = std::stoi(argv[1]);
   int port = 9001; //GET FROM CMD LINE????
   shared_ptr<JobHandler> handler(new JobHandler());
   shared_ptr<TProcessor> processor(new JobProcessor(handler));
