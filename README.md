@@ -13,4 +13,8 @@
 
 All projects used thrift and C++
 
+Please refer to README in each project directory for more info for each specific project
+
+
+
 
