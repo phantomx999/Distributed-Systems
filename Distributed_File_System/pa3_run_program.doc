@@ -1,0 +1,215 @@
+written by phantomx999 and dicki098
+
+
+USER INSTRUCTIONS:
+
+
+Important Notes Before Starting:
+****************************************************************************
+To run application, first make sure you have correct installment of thrift:
+
+> locate libthrift
+
+Make sure that "/usr/local/lib/libthrift.so" shows up after typing this command.
+If not, you can do
+
+> ssh atlas.cselabs.umn.edu
+
+And type in correct user password in order to get access to atlas cselabs, 
+in which case running "locate libthrift" should now show 
+"/usr/local/lib/libthrift.so" path.
+
+Every terminal used to run application must have "/usr/local/lib/libthrift.so"
+in order to work, so you might have to ssh atlas.cselabs.umn.edu for all
+terminals opened if necessary.     
+****************************************************************************
+
+
+GETTING STARTED:
+
+First, "cd" into the correct directory of PA3.
+
+
+Once there, run thrift command in terminal:
+
+> thrift -r --gen cpp PA3.thrift
+
+After this, in terminal, run: 
+
+> make
+
+to compile server.cpp and client.cpp
+
+
+_____________________________________________________________________________
+ Note: If any issues occur when running make, check if makefile includes a 
+ command -D_GLIBCXX_USE_CXX11_ABI=0 in g++ compile line.  Try both adding in 
+ (or deleting) this command in the makefile for all super, node, and client, 
+ and then run make again   
+-----------------------------------------------------------------------------
+
+After running "make" with no issues, next run the programs in separate terminals
+
+
+Order of running:
+-First run coordinator server, then other servers, then clients
+
+-Open terminal for coordinator, run coordinator first, answer coordinator user input
+prompts, then open other terminals
+and run non coordinator servers next, open other terminals and run client
+
+-Note that number of servers is N and is user inputted in coordinator terminal
+after coordinator is running.  Thus, after coordinator is up and runninng,
+follow UI prompts and input N number of servers decided.  Then open up terminals
+and run N number of servers (including coordinator) for program to work.  
+
+-After that, multiple clients can be run, and can connect to any server in the
+simple file sharing system that is up and running (both coordinator and all non coordinators).
+
+
+
+
+ALL SERVERS:
+********************************************************************************
+//COMPILE USING MAKEFILE: make server
+//Or make all: make
+
+  TO RUN:
+  >   ./server <ThisMachines Port> <This Machines IP> <CoordIP> <CoordPort> <Coordinator Mode>
+
+ 
+ where coordinator = 1 and non coordinator = 0 in <coordinator mode>
+
+  Run Coordinator Example:
+  >  ./server 9000 localhost localhost 9000 1
+
+  Run Non Coordinator Example:
+  >  ./server 9001 localhost localhost 9000 0
+
+  
+  More Examples and Information:
+  //ex 7 servers:
+./server 9001 localhost localhost 9090 1
+./server 9002 localhost localhost 9090 0
+./server 9003 localhost localhost 9090 0
+./server 9004 localhost localhost 9090 0
+./server 9005 localhost localhost 9090 0
+./server 9006 localhost localhost 9090 0
+./server 9007 localhost localhost 9090 0
+
+
+  // localhost changed to other IP addresses when running different computers
+
+***********************************************************************************
+
+
+All non coordinator servers must use coordinator ip and coordinator port for
+<CoordIP> <CoordPort> arguments.  Also, only 1 coordinator exists,
+so <Coordinator Mode> is 1 for only one server and all other servers must
+be 0 for <Coordinator Mode>
+
+
+
+
+CLIENT(S):
+*******************************************************************
+COMPILE USING MAKEFILE: make client
+To Run: ./client <Server_IP> <Server_Port>
+Or
+To Run With Default (Server) Values: ./client
+
+NOTE: Start after the server setup to ensure correct functionallity
+
+Example 3 clients:
+
+Connect to the default coordinator
+./client localhost 9001
+./client localhost 9004
+./client localhost 9003
+*******************************************************************
+
+Note that client can connect to any servers in the system that
+are currently up and running.  
+
+
+
+****************************************************************************
+User Input Coordinator:
+First run coordinator, and enter UI prompts before running
+any other servers or clients in system.
+For Coordinator:
+>Enter N positive, odd number of total servers in distributed file system: 
+
+here enter the number of servers in your system.  Make sure
+that the number of servers up and running equal N (this includes coordinator server too),
+before running client.  
+
+>Enter Nw, where Nw > N/2, and Nw <= N:  
+
+here just follow logic and enter Nw
+
+>Enter Nr, where Nr + Nw > N, and Nr <= N:
+
+same here with Nr
+
+Example:
+>Enter N positive, odd number of total servers in distributed file system:  7
+>Enter Nw, where Nw > N/2, and Nw <= N:  5
+>Enter Nr, where Nr + Nw > N, and Nr <= N:  4
+*****************************************************************************
+
+
+There is no non coordinator server UI, just run it next.
+
+
+Last......
+************************************************************************
+User Input Client:
+>Enter "r" to read file, "w" to write to file,  "s" to stop program, "p" to print SDFS files/versions, "x" to read-heavy, "z" to write-heavy:  
+
+Pretty self explanatory.  If you do "r" then you read just one time (one request), same with "w" (one write request).
+If you run "p", go to the coordinator server terminal and it will print the filename, version, and contents of
+all files in the simple distributed file system.  If you enter "x" then it will run 25 threads of read requests, and 
+if you run "z" then it will run 25 threads of write requests.  
+
+If you choose to read or write, it will then ask for a filename to perform this action on.  
+>Enter filename you wish to read or write to:
+
+If you choose to write, it will then further ask for contents to write in the file 
+>Enter contents you wish to write to file:  
+
+Here's a full example....
+Enter "r" to read file, "w" to write to file,  "s" to stop program, "p" to print SDFS files/versions, "x" to read-heavy, "z" to write-heavy:  w
+Enter filename you wish to read or write to:  apple
+Enter contents you wish to write to file:  sauce
+...
+Enter "r" to read file, "w" to write to file,  "s" to stop program, "p" to print SDFS files/versions, "x" to read-heavy, "z" to write-heavy:  r
+Enter filename you wish to read or write to:  apple
+...
+
+Enter "r" to read file, "w" to write to file,  "s" to stop program, "p" to print SDFS files/versions, "x" to read-heavy, "z" to write-heavy:  p
+
+(GOTO coordinator terminal after this and you will see there...)
+**********************PRINT*******************************
+FILES:		VERSION		CONTENTS
+apple:		1		sauce
+*********************PRINT*************************************
+
+Go back to client terminal now and enter "s"
+
+Program will then end, this ends the UI tutorial example....
+
+************************************************************************
+
+
+To exit any terminal processes, enter ctrl-z
+
+
+NOTE:  When quitting and restarting the programs, you might need to close any terminals that have binding 
+issues with ports you recently used, as those ports could currently still be in use, so open a new 
+terminal and rerun the program on a new, unused port.  Or you can simply use other ports that have not been
+used.  
+
+
+
+

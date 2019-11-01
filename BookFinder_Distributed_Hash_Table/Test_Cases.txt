@@ -1,0 +1,169 @@
+written by phantomx999 and dicki098
+
+
+
+TEST CASE DISCUSSION
+
+1.  Incorrect Text Files as Input in Client:
+One example of negative test cases can be tested in the text files that are used
+in the bookfinder DHT.  For example, the correct data format input for text files is
+
+<title1>:<genre>
+<title2>:<genre>
+<title3>:<genre>
+     .......
+      .....
+       ...
+        .
+     
+
+
+Furthermore, every line must have a <title>:<genre> format
+   
+Example:
+
+Grapes of Wrath:Classic
+Harry Potter:Fiction
+Game of Thrones:Fantasy
+
+
+However, users running the book finder application might accidentally use a
+text file that has incorrect data format, which are referred to as negative test cases
+
+Below is a list of negative test case text files attempted in our application and our 
+results that fixed these bad input text files
+
+Negative Test Cases Attempted:			Results
+-----------------------------------------------------------------------------------------
+1. file completely empty with no data  -outputted specific error message, exited program
+                                     
+2. file with some empty lines          -outputted specific error message, exited program
+                                     
+3. file with some lines that had no    -outputted specific error message, exited program
+   book titles                       
+   Example: <title1>:genre           
+            :genre                   
+            <title2>:genre           
+                                     
+4. file with some lines that had no    -outputted specific error message, exited program
+   genre		             
+   Example: <title1>:genre           
+            <title2>:                
+            <title3>:genre           
+                                     
+5. file with some lines that had no    -outputted specific error message, exited program
+   double colon		             
+   Example: <title1>:genre           
+            <title2>genre            
+            <title3>:genre           
+         		
+6. file with some lines that had too   -outputted specific error message, exited program
+   many double colons		      
+   Example: <title1>:genre           
+            <title2>:genre:          
+            :<title3>:genre          
+             						 
+7. file with some lines that had only  -outputted specific error message, exited program
+   whitespaces for titles and genres 
+   Example: <title1>:genre           
+                    :genre           
+            <title3>:   '\t'         
+             	
+-----------------------------------------------------------------------------------------
+
+Note that any combination of these types of negative test cases would still output a
+specific error message to terminal (usually the first type of error caught in client
+CheckTextFile() funciton), and the program would exit.  
+
+
+
+2.  User Interface with DHT Negative Test Cases:
+
+The user is first prompted to enter a text file to set up the DHT.
+If the user enters a non existent text file or incorrect text file,
+our client program covers this and prints out that it cant open the file
+and it exits the program.  
+
+After the text file data has been set into the DHT, and get has returned
+the genre pairings for each book title (all of this is done with no UI), 
+the UI command prompt asks user to enter 1, 2, or 3 to either set, get, or
+quit.  If the user enters anything besides 1, 2, or 3, they are continously
+prompted by a while loop to reenter 1, 2 or 3 to continue onwards in order
+to avoid bad user input.    
+
+Set()
+For user to set a book title and genre into the DHT inside client terminal, 
+a command prompt instructs user to enter a book title to set into the DHT.
+Afterwards, a command prompt instructs user to enter a genre into the DHT as well.
+
+A user could accidentally enter an empty string into either the title or genre,
+and this could possibly cause an error in the DHT.  However, inside client.cpp,
+a while loop is used for both book title and genre so that the user must enter 
+a non-empty string for both book title and genre in order to continue, so that
+this error in the DHT is impossible to occur.  
+
+Also, a user can update a genre for a book title by entering in the desired book title
+that already is in the DHT via Set(), and then put in a different genre via Set()
+
+
+Get()
+For the Get() method in client.cpp, the client is suppose to send a current 
+book title to the DHT, and the DHT sends back the correct type of genre of that book 
+title.  
+
+A possible problem with UI in this case would be the user with Get() entering
+a non existent book (or an empty string) into Get() and the DHT would be unable
+to find this book. 
+
+However, the DHT solves this issue by simply recursively
+going through each node in the DHT to find the book title.  If the first node
+that originally received the Get() request from client receives the request a second
+time, then it is assumed that that particular book does not exist in the DHT at that
+particular time, and so the node returns DNE (Does Not Exist) to the genre string
+back to the client, letting
+the user know that the book does not exist in the DHT.  This is outputted to the 
+terminal to let the user know, and the client program is still continued like usual 
+afterwards.
+
+If the user enters an empty string into Get() for book title, the UI
+continuously prompts the user to enter in a non empty string.    
+
+
+
+
+3.  Bad Input arguments for super, node, and client.cpp for Negative Test Cases
+
+To Run Super:
+
+  ./super <Port> <Number Of Nodes>
+
+If <Number Of Nodes> is accidentally omitted by user, then the default value is 
+always established as 5 for the number of nodes.  
+
+If both <Port> and <Number Of Nodes> are omitted by user accidentally, then the
+default value is 9090 for port and 5 for number of nodes.  
+
+Any other bad input arguments delivers an error message and exits program.  
+
+To Run Node:
+
+     ./node <Port> <IP> <SuperNodeIP> <SuperNodePort>
+     
+If user only enters ./node <Port> 
+...then IP = localhost, SuperNodeIP = localhost, and SuperNodePort = 9090 by default.  
+
+Any other bad input arguments delivers an error message and exits program.  
+
+To Run Client:
+
+    ./client <SuperNodeIP> <SuperNodePort> 
+    
+If user only enters ./client
+
+...then by default, serverIP = "localhost", superNodePort = 9090
+ 
+
+Any other bad input arguments delivers an error message and exits program.  
+
+
+

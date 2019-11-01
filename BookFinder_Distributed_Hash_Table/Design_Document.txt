@@ -1,0 +1,49 @@
+written by phantomx999 and dicki098
+
+
+Distributed Hash Table (DHT) Book Finder
+
+Design:
+The purpose of this project was to create a bookfinder DHT, consisting of booktitle and genre pairings.  To do so, a Super Node would be up and running, listening for connection requests from nodes and client.  The Super Node
+would receive a connection from a node, and then send back other node information (if that node was not the first to contact the Super Node).  With that information, the node would contact the other node(s) and join the DHT using Chord protocol.  
+
+After all nodes joined the DHT, the client would then connect with the Super Node to get a random node information in the DHT. 
+
+The client would then contact and connect with this node and send bookfinder data of <booktitle> and <genre> pairings (read from a user inputted text file) to the node, which would then set this data, via communicating with the other nodes, into the DHT and then update the DHT afterwards.  The client would then send out a Get() request to the node it was originally communicating with, which in turn, causes the node to communicate with other nodes using the DHT in order to send back all of the book titles with genre pairings back to the client.  
+
+After this, with UI, the user can choose to continue to send set requests in client to the same node to update the DHT with a new booktitle and genre (or update an original book title already in DHT with a new genre).  The client can also get a book's genre from the DHT by contacting this same node with Get() request and the book title, and the node, using the DHT, gets the genre back and returns it to the client (DNE if no book title exists).          
+
+
+SuperNode:
+Establishes a Socket connection and sits and listens on a port.  First, nodes one by one connect with the SuperNode, which give back each node information about another node currently up and running (If it's the first node, then it just acts like a socket server and listens on a port).  This referral of node information is how the DHT is set up, by nodes contacting one another and joining the DHT via Chord.   
+
+Furthermore, if multiple nodes simultaneously try to join the DHT by contacting the SuperNode while it is busy handling another nodes request, a "NACK" string is returned and the nodes are forced to wait until the Super Node is done working with the current node.  
+
+After a node finishes communicating with the SuperNode, the connection is closed, and the Super Node is no longer "busy", so other nodes can continue to join the DHT by connecting with the Super Node.  Once all the nodes are finished communicating with the Super Node, the nodes should have all of their information to join and set up the DHT using Chord Protocol.
+
+Lastly, the Super Node continues to run and the client afterwards contacts the Super Node.  The Super Node, with Get() request, randomly returns a node's ip and port information back to the client, which then in turn communicates with this node.  This client node request only happens once in the entire program, so that the client continues communicating with the same node
+throughout the duration of client program running.    
+
+
+Node:
+We tried to stick pretty close to the Chord protocol for the design but we deviated slightly.
+
+When a node is joining the ring, it traverses by following the successor of every node until it finds a node it has already seen. The deviation here is that it is supposed to stop running around when it finds a spot that it belongs to (a successor and predecessor). This allows a more fleshed out finger table because it is exposed to more nodes. Since the number of nodes is at most the number of bits in the encryption used, this didn't seem like it would hurt the performance much.
+
+We used a simpler implementation for the finger table than what was described in the paper. Each node has a copy such that finger[i] = the hashed ID of node[i].
+
+Each node has a struct for its successor and predecessor that includes contact information.
+
+The search functionality implemented for Set() and Get() is recursive. It works by looking at the nodes current finger table and checking to see if the book fits in any of those. If it does, it pushes the request to the found node. Otherwise, it pushes the request to it's successor and continues this process.
+
+The overall flow of a node is as such:
+Calls Join on supernode -> contacts returned node -> traverses chord ring -> determines predecessor and successor -> notifies them to update -> starts its own server.
+
+Client:
+The client connects with the Super Node and gets back ip and port information of a random node.  The Client then closes this connection with the Super Node and then connects with this random node in the DHT.  The client then sends data from a textfile inputted via the user to the node, which then sends out this data to other nodes to be stored throughout the DHT.  
+
+If the text file data is invalid, or doesnt exist, or bad UI input, etc.  the client prints an error message and exits the program.
+
+After the text file data has been set up in the DHT, the client then gets all of the genres of each book title in the DHT and prints it to the screen to let the user see the results.  
+
+Afterwards, the user can continuously set new book-title/genre pairings manually into the DHT, or it can get a genre of a book title, or the user can quit the client program.   

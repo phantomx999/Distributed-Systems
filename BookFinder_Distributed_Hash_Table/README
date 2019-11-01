@@ -1,0 +1,19 @@
+DISTRIBUTED SYSTEMS BOOKFINDER SYSTEM Distributed Hash Table
+written by phantomx999 and dicki098
+
+Files Included:
+client.cpp
+node.cpp
+super.cpp
+PA2.thrift
+makefile
+Design_Document.txt
+Test_Cases.txt
+User_Instructions.txt
+
+Please refer to User_Instructions to compile, start, and run program
+
+Please refer to Design_Document for purpose of and design details of bookfinder DHT
+
+
+

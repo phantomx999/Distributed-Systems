@@ -1,0 +1,189 @@
+written by phantomx999 and dicki098
+
+
+USER INSTRUCTIONS:
+
+
+Important Notes Before Starting:
+****************************************************************************
+To run application, first make sure you have correct installment of thrift:
+
+> locate libthrift
+
+Make sure that "/usr/local/lib/libthrift.so" shows up after typing this command.
+If not, you can do
+
+> ssh atlas.cselabs.umn.edu
+
+And type in correct user password in order to get access to atlas cselabs, 
+in which case running "locate libthrift" should now show 
+"/usr/local/lib/libthrift.so" path.
+
+Every terminal used to run application must have "/usr/local/lib/libthrift.so"
+in order to work, so you might have to ssh atlas.cselabs.umn.edu for all
+terminals opened if necessary.     
+****************************************************************************
+
+
+GETTING STARTED:
+
+First, "cd" into the correct directory of PA2.
+
+
+Once there, run thrift command in terminal:
+
+> thrift -r --gen cpp PA2.thrift
+
+After this, in terminal, run: 
+
+> make
+
+to compile super.cpp, node.cpp, and client.cpp
+
+_____________________________________________________________________________
+ Note: If any issues occur when running make, check if makefile includes a 
+ command -D_GLIBCXX_USE_CXX11_ABI=0 in g++ compile line.  Try both adding in 
+ (or deleting) this command in the makefile for all super, node, and client, 
+ and then run make again   
+-----------------------------------------------------------------------------
+
+
+After running "make" with no issues, next run the programs in separate terminals
+
+
+First, run super, then node(s), then client (in that exact order).  Directions for running
+each are below.....
+
+
+First run the super node by opening a terminal...
+
+_____________________________________________________________________________________
+SUPERNODE:
+COMPILE USING MAKEFILE: make super
+COMPILE USING MAKEFILE ALL: make
+
+To Run: ./super <Port> <Number Of Nodes>
+Or
+        ./super <Port>      => Uses default Number Of Nodes = 5
+        ./super             => Uses default NUmber of Nodes = 5 and Port = 9090
+
+
+ex:
+./super 9090 5
+Or:
+./super 9090
+
+App Notes: Ideally start this before ./client or ./node
+-------------------------------------------------------------------------------------
+
+
+
+
+After super is run, on a new, separate terminal in same directory, run a node:
+____________________________________________________________________________________
+NODE:
+COMPILE USING MAKEFILE: make node
+Or make all: make
+
+To start this: ./node <Port> <IP> <SuperNodeIP> <SuperNodePort>
+You can start these in any order ****AFTER THE SERVER IS STARTED***!!!!!!!!!!
+You can also have any number of nodes but it has to match the SuperNode's commandline input.
+It is 5 by default
+./node <ThisMachines Port> <This Machines IP> <SuperNode IP> <SuperNode Port>
+ex:
+./node 9001 localhost localhost 9090
+./node 9002 localhost localhost 9090
+./node 9003 localhost localhost 9090
+./node 9004 localhost localhost 9090
+./node 9005 localhost localhost 9090
+--------------------------------------------------------------------------------------
+
+
+
+
+Note that node must match the Super Node IP and Port to connect to Super Node.  
+
+Continue to open new terminals and run more nodes on new, unused ip/ports.
+
+IMPORTANT.....you must run an equal number of nodes to the SuperNode commandline input
+of nodes in order for application to correctly run successfully (default = 5).  
+
+After all the nodes are up and running, now run the client:
+_____________________________________________________________________________________
+CLIENT:
+COMPILE USING MAKEFILE: make client
+Or make all: make
+
+To Run: ./client <SuperNodeIP> <SuperNodePort> 
+Or
+To Run With Default (SuperNode) Values: ./client 
+
+ex:
+./client localhost 9090 
+Or:
+./client 
+
+********** START THE CLIENT LAST TO ENSURE PROPER DHT SETUP ****************
+
+-------------------------------------------------------------------------------------
+
+
+Client must match SuperNode IP and SuperNode Port (default ip = localhost, default port = 9090) 
+
+
+Now that everything is running, in the client's terminal, follow the User Interface command
+prompts.
+
+First, enter <textfile> from UI to be put into bookfinder DHT.  
+
+The <texfile> input into the client is the <title>:<genre> data format 
+meant to be stored in the bookfinder DHT.  Please note that the text file MUST
+have this exact format of <title>:<genre>  FOR EVERY LINE in order to work.
+
+______________________________________________________________________________________________
+Note:   
+A list of negative test cases of bad input data text files that do not follow this format
+is attempted and discussed more in "Test_Cases.txt" (Our CheckTextFile() function in client
+checks a lot of these negative test cases and successfully deals with these issues accordingly 
+-----------------------------------------------------------------------------------------------
+
+
+
+After <textfile> has been entered into the UI command prompt with no negative test cases, then the node
+makes a connection with the SuperNode, and calls GetNode() to get a random node
+in the DHT.
+  
+The data from <textfile> in client, with Set(title, genre) format, is automatically sent to the node (with no UI), 
+where the node sets up the DHT and stores these booktitles with genres in the DHT.   
+
+Get() is automatically run (without UI) afterwards and every title in the <textfile> 
+is printed out with its returned genre back into the client terminal.  
+
+After this, the UI prompts the user to either enter:
+1.  To set a book title and genre into the DHT
+    - first, it continously prompts user to enter book title until they sucessfully do so
+    - second, it continously prompts user to enter genre until they sucessfully do so
+2.  To get a genre from a book title.
+    - continously prompts user to enter book title until they sucessfully do so  
+    - returns and prints out the paired genre with that book title
+    - returns DNE (Does Not Exist) if book title is not currently in DHT
+3.  To quit client program
+
+Any other invalid inputs continously prompts user to reenter a 1, 2, or 3
+value in order to proceed.  
+
+After 3 is entered, the client program exits.  
+
+You can re run the client program afterwards so as long as super and nodes are still running.
+
+
+To exit super and node(s), enter ctrl-z
+
+
+NOTE:  When quitting and restarting the programs, you might need to close any terminals that have binding 
+issues with ports you recently used, as those ports could currently still be in use, so open a new 
+terminal and rerun the program on a new, unused port.   
+
+
+
+

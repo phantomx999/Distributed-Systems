@@ -1,4 +1,5 @@
-Map Reduce Project written by Andrew Steinbrueck and Jeffrey Dickinson
+Map Reduce Project written by phantomx999 and dicki098
+
 (to run project, please refer to user_document.txt file)
 
 

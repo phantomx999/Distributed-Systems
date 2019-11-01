@@ -1,0 +1,84 @@
+These test cases assume 7 file servers and 3 clients.
+
+Test Case 1:
+	Client 1 Writes to file: test1 contents: hello
+	Client 2 Reads file: test1
+	Expected Results: hello
+
+	Client 1 then requests a print. The Coordinator should show file = test1, version = 1, contents = hello 
+	
+	This test case shows how you can write on one client then read on another. It also shows how to get the version.
+
+Test Case 2:
+	Client 1 Write to file = test2, contents = hello
+	Client 2 Write to file = test2, contents = goodbye
+	Client 3 Read from file = test2
+	Expected Results: goodbye
+
+	Client 1 then requests a print. The coordinator should show file = test2, version = 2, contents = goodbye
+
+	This test case shows how writes overwrite each other and the version updates.
+
+Test Case 3:
+	Client 1 Reads from file = test3
+	Expected Results: DNE
+
+	This test case shows how the server handles a read command for a file that doesn't exist.
+
+Test Case 4: 
+	Client 1 Write Heavy command ('z') file = test4, content = iter
+	Expected Results:  To view these results, call for a print command.
+	Expected Results: file = test4, version 25, contents = iter #
+
+	This test case shows how the server handles 25 requests that are multithreaded. This can be confirmed in viewing the version number. 
+	One note, we use 5 threads 5 times (a double for loop) instead of 25 full threads. This was done because if we used higher thread count our program became unstable.
+
+Test Case 5:
+	Client 2 Write to file = test5, contents = hello
+	Client 1 Read Heavy Command ('x') on file = test5 
+
+	Expected Results: hello
+
+Test Case 6:
+        Client 1 Writes to file = test6, contents = hi, with ("z") write-heavy (25 threads write requests)
+        Here the Queue could be implemented because only 1 thread gets the lock, while the other threads get added to the
+        queue and wait for lock to be released.
+        Have print statements to indicate which thread got the lock first, and also print statements to indicate the order of the
+        queue (which requests got added before other ones).  Then indicate through print when the thread with lock realeases it,
+        and print the next request that acquires that lock (should be next item in the queue).  Continue following the process 
+        of ordering to see which requests get executed until the queue is completely empty, in which case the background
+        non quorum servers will get updated and the lock will finally be released.    
+
+
+        Expected Results: Queued
+        Expected Results:  To view these results, call for a print command.
+        Should be...
+        <filename> 	<version>	 <contents>    
+        where version = 25 (25 threads) and content  is the content a specific thread that got written last to file
+        and would include thread_n where n is the number of the thread (i.e. thread_12).   
+ 
+
+Graph Discussion:
+  
+If you look at our 4 graphs in this current directory (the .png files) you will notice that there are two read-heavy
+and two write-heavy graphs.  Both types of graphs have a CPU time recorded (ms) and Average Thread Time (ms) on y-axis.
+For read-heavy, we kept Nw at 4, while increasing Nr from 4 to 5 to 6 to 7 (each separate trials, N = 7 always).
+We did the same with write-heavy, N was 7 as well, Nr always equaled 4, and Nw equals 4.....7 on x-axis  
+
+While our graph data wasn't perfect, it's clear that as our system went into a read heavy or write heavy mode in clients,
+it would generally take longer (more CPU time and more average thread time) when we used more servers rather than less servers.
+For example, Nr in read-heavy CPU and average thread time increased when we increased Nr server value from 4 upwards to 7 (same with Nw with write heavy, time increased with more servers).  This is because the more the number of servers meant that the more servers needed to be contacted in the quorum.  The more servers in the quorum meant that all the servers replica file's data had to be processed.  In other words, a smaller quorum of only 3 servers would only need to process 3 replica files and the versions of these 3 files, while a larger quorum with 7 servers had to have 7 replica files be processed and compared with to find most updated version, as well as writing to these files and reading from the files.  
+
+As for nonquorum servers, this was not as much the case because they ran in a background thread and so they didnt slow down the main program even if they needed to be updated a lot.  
+
+Therefore, it's clear that the larger the Nr and Nw sizes for quorum would increase the execution time of the simple distributed file system read and writes. 
+
+This was tested with write heavy and read heavy as we could send out a lot of requests in multiple at once to really get a lot of requests processed.  This increased our amount of data (rather than just having 1 read or 1 write request at time).  Having more requests in either read heavy or write heavy gave us a lot of information and data as toward the general trend of having more servers in quorum would increase the execution time.  
+
+It should also be mentioned that our write heavy was a little faster than our read heavy processing times with similar Nr and Nw values between the two.  We suspect that it's possible that writing data might be faster in the system (perhaps due to something such as cache?).  However, it's not too clear as our read and write were overall pretty comparable in terms of processing times.  
+
+We also upped the number of threads to 125 (that means 125 requests) in both read heavy and write heavy.  We did this so that we could gather more data for our graphs.  We then took the average of multiple trials of the heavy load runs.  However, we now officially brought down the number of threads to 25 so that our overall program would run smoother and servers wouldn't get flooded with too many requests at once.  Thus, we used 125 for data collection, but now only use 25 to ensure that the program runs smoothly for testing and grading purposes.     
+
+Some shortcomings of our data collection are that the graph should ideally be an upward trend throughout (positive slope).  While this was generally the case, some data points yielded negative slopes at times.  This could be because we didn't run enough trials and collected enough data (greater N size might have normalized the results more and made them more generalizable).  We also suspect that our data of a fully positive slope throughout the graph (increased servers in quorum) would be more pronounced and self evident had we used a much larger N size and Nr and Nw values (i.e. N = 99, Nw = 99, Nr = 55 for write heavy as example....etc.).  
+
+This concludes our discussion of the graphs.   
